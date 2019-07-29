@@ -5,8 +5,8 @@ nmlci con up static
 hostnamectl set-hostname cs09-vm1.contoso.com
 echo 127.0.0.1 cs09-vm1 cs09-vm1.contoso.com >> /etc/hosts
 echo 172.16.0.8 cs09-vm2 cs09-vm2.contoso.com >> /etc/hosts
+yum -y install bind bind utils
 reboot
 
 
 
-yum -y install bind bind utils

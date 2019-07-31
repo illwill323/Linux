@@ -11,15 +11,44 @@ teamdctl team0 state
 nmcli con mod team0 ipv4.dns 10.13.2.5,10.13.2.7
 nmcli con down team0
 nmcli con up team0
-yum -y install bind targetcli
-#cd /var/named
+yum -y install bind targetcli nfs-utils samba
 wget https://raw.githubusercontent.com/brianf21/CTS1111C/master/contoso.com.zone -O /var/named/contoso.com.zone
 wget https://raw.githubusercontent.com/brianf21/CTS1111C/master/0.0.10.in-addr.arpa.zone -O /var/named/0.0.10.in-addr.arpa.zone
+#vi /etc/exports
+#wget https://raw.githubusercontent.com/illwill323/Linux/master/nfs.exports -O /etc/exports
+systemctl start nfs-server
+systemctl enable nfs-server
+mkdir /smbshare
+mkdir /nfsshare
+semanage fcontenxt -a -t samba_share_t '/smbshare(/.*)?/'
+restorecon -vvFR /smbshare
+setsebool -P samba_export_all_rw=1
+#vi /etc/samba/smb.conf
+rm /etc/samba/smb.conf
+#wget https://raw.githubusercontent.com/illwill323/Linux/master/samba.smb.conf -O /etc/samba/smb.conf
+testparm
+useradd -s /sbin/nologin uone
+groupadd faculty
+useradd -G faculty utwo
+echo Pa11word | passwd --stdin uone
+echo Pa11word | passwd --stdin utwo
+smbpasswd -a uone
+smbpasswd -a utwo
+chown uone:faculty /smbshare
+chmod 770 /smbshare
+#cd /var/named
+#
 systemctl enable named
 systemctl start named
+systemctl start smb nmb
+systemctl enable smb nmb
 firewall-cmd --permanent --add-service=dns --zone=public
+firewall-cmd --permanent --add-port=3260/tcp --zone=public
+firewall-cmd --permanent --add-service=nfs
+firewall-cmd --permanent --add-service=samba 
 firewall-cmd --reload
+systemctl enable target
+systemctl start target
 nmcli con mod team0 ipv4.dns 127.0.0.1
-vi /etc/named.conf
 systemctl restart named
 reboot

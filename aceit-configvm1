@@ -12,10 +12,12 @@ nmcli con mod team0 ipv4.dns 10.13.2.5,10.13.2.7
 nmcli con down team0
 nmcli con up team0
 yum -y install bind targetcli nfs-utils samba
-wget https://raw.githubusercontent.com/brianf21/CTS1111C/master/contoso.com.zone -O /var/named/contoso.com.zone
-wget https://raw.githubusercontent.com/brianf21/CTS1111C/master/0.0.10.in-addr.arpa.zone -O /var/named/0.0.10.in-addr.arpa.zone
+rm /etc/named.conf
+wget https://raw.githubusercontent.com/illwill323/Linux/master/named.conf -O /etc/named.conf
+wget https://raw.githubusercontent.com/illwill323/Linux/master/contoso.com.zone -O /var/named/contoso.com.zone
+wget https://raw.githubusercontent.com/illwill323/Linux/master/0.0.10.in-addr.arpa.zone -O /var/named/0.0.10.in-addr.arpa.zone
 #vi /etc/exports
-#wget https://raw.githubusercontent.com/illwill323/Linux/master/nfs.exports -O /etc/exports
+wget https://raw.githubusercontent.com/illwill323/Linux/master/nfs.exports -O /etc/exports
 systemctl start nfs-server
 systemctl enable nfs-server
 mkdir /smbshare
@@ -25,7 +27,7 @@ restorecon -vvFR /smbshare
 setsebool -P samba_export_all_rw=1
 #vi /etc/samba/smb.conf
 rm /etc/samba/smb.conf
-#wget https://raw.githubusercontent.com/illwill323/Linux/master/samba.smb.conf -O /etc/samba/smb.conf
+wget https://raw.githubusercontent.com/illwill323/Linux/master/samba.smb.conf -O /etc/samba/smb.conf
 testparm
 useradd -s /sbin/nologin uone
 groupadd faculty

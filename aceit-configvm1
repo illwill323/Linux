@@ -1,15 +1,15 @@
 nmcli con add type team con-name team0 ifname team0 config '{"runner": {"name": "loadbalance"}}' ipv4.addresses 10.0.0.100/24 ipv4.method manual
 nmcli con add type team-slave ifname eth0 master team0
 nmcli con add type team-slave ifname eth1 master team0
-nmcli con mod team0 gw4 10.0.0.1 ipv4.dns 127.0.0.1
-nmcli con down eth0
-nmcli con mod eth0 autoconnect no
+nmcli con mod team0 gw4 10.0.0.1 ipv4.dns 10.13.2.5,10.13.2.7
+#nmcli con down eth0
+#nmcli con mod eth0 autoconnect no
 hostnamectl set-hostname vm1.contoso.com
 echo 127.0.0.1 vm1 vm1.contoso.com >> /etc/hosts
 echo 10.0.0.101 vm2 vm2.contoso.com >> /etc/hosts
 teamdctl team0 state
-nmcli con mod team0 ipv4.dns 10.13.2.5,10.13.2.7
-nmcli con down team0
+#nmcli con mod team0 ipv4.dns 10.13.2.5,10.13.2.7
+#nmcli con down team0
 nmcli con up team0
 yum -y install bind targetcli nfs-utils samba
 rm /etc/named.conf

@@ -12,9 +12,9 @@ nmcli con mod team0 ipv4.dns 10.13.2.5,10.13.2.7
 nmcli con down team0
 nmcli con up team0
 yum -y install bind targetcli
-cd /var/named
-wget https://raw.githubusercontent.com/brianf21/CTS1111C/master/contoso.com.zone
-wget https://raw.githubusercontent.com/brianf21/CTS1111C/master/0.0.10.in-addr.arpa.zone
+#cd /var/named
+wget https://raw.githubusercontent.com/brianf21/CTS1111C/master/contoso.com.zone -O /var/named/contoso.com.zone
+wget https://raw.githubusercontent.com/brianf21/CTS1111C/master/0.0.10.in-addr.arpa.zone -O /var/named/0.0.10.in-addr.arpa.zone
 systemctl enable named
 systemctl start named
 firewall-cmd --permanent --add-service=dns --zone=public

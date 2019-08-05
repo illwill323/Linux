@@ -1,4 +1,4 @@
-#Setup configurations
+####Setup configurations
 
 nmcli con add con-name static type ethernet ifname eth0 ip4 10.0.0.101/24 gw4 10.0.0.1 ipv4.dns 10.13.2.5,10.13.2.7 autoconnect yes
 nmcli con mod eth0 autoconnect no
@@ -9,7 +9,22 @@ echo 127.0.0.1 vm2 vm2.contoso.com >> /etc/hosts
 echo 10.0.0.100 vm1 vm1.contoso.com >> /etc/hosts
 yum -y install unbound autofs iscsi-initiator-utils samba-client cifs-utils
 
+####System Enable/Start
 
+systemctl enable unbound
+systemctl start unbound
+systemctl enable autofs
+systemctl start autofs
+
+####Firewall
+
+Firewall-cmd --zone=public --permanent --add-service=dns
+Firewall-cmd --zone=public --permanent --add-service=nfs
+Firewall-cmd --zone=public --permanent --add-service=iscsi-target
+Firewall-cmd --zone=public --permanent --add-service=samba-client
+firewall-cmd --reload
+
+####Unbound
 
 ausearch -c 'unbound' --raw | audit2allow -M my-unbound
 semodule -i my-unbound.pp
@@ -900,6 +915,7 @@ forward-zone:
 
 EOF
 
+####Iscsi-target config
 
 rm /etc/iscsi/initiatorname.iscsi
 cat > /etc/iscsi/initiatorname.iscsi << EOF
@@ -909,7 +925,7 @@ systemctl enable iscsi
 systemctl restart iscsid
 systemctl restart iscsi
 iscsiadm -m discovery -t sendtartgets -p 10.0.0.100:3260
-iscsi
+iscsiadm -m node -T iqn.2014-06.com.example:remotedisk1 -p 10.0.0.100:3260 -l
 
 
 
@@ -921,6 +937,8 @@ n
 
 w
 EOF
+partprobe
+mkfs.xfs /dev/sda1
 
 rm /etc/auto.master
 cat > /etc/auto.master << EOF
@@ -956,8 +974,23 @@ cat > /etc/auto.master << EOF
 
 EOF
 
+####SMB
+cat >/root/smb << EOF
+username=uone
+password=Pa11word
+
+EOF
+
+####Auto.misc config
 
 myuuid=$(blkid | grep sda |awk -F " " '{ print $2 }')
 echo -e "iscsi\t\t-fstype=xfs\t\t$myuuid" >> /etc/auto.misc
 echo -e "nfsshare\t\t-fstype=nfs,rw\t\tvm1:/nfsshare" >> /etc/auto.misc
-echo -e "smbshare\t\t-fstype=cifs\t\t://vm1/smbshare" >> /etc/auto.misc
+echo -e "smbshare\t-fstype=cifs,rw,credentials=/root/smb,uid=1000,gid\t\t://vm1/smbshare" >> /etc/auto.misc
+
+####System Restarts
+
+systemctl restart autofs
+systemctl restart unbound
+systemctl restart iscsid
+systemctl restart iscsi

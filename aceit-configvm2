@@ -1,3 +1,5 @@
+#Setup configurations DO NOT RUN UNTIL YOU ADD THE UNBOUND FILE!!!!!!!!!!!
+
 nmcli con add con-name static type ethernet ifname eth0 ip4 10.0.0.101/24 gw4 10.0.0.1 ipv4.dns 10.13.2.5,10.13.2.7 autoconnect yes
 nmcli con mod eth0 autoconnect no
 nmcli con down eth0
@@ -5,4 +7,72 @@ nmcli con up static
 hostnamectl set-hostname vm2.contoso.com
 echo 127.0.0.1 vm2 vm2.contoso.com >> /etc/hosts
 echo 10.0.0.100 vm1 vm1.contoso.com >> /etc/hosts
-yum -y install unbound autofs
+yum -y install unbound autofs iscsi-initiator-utils samba-client cifs-utils
+
+
+
+ausearch -c 'unbound' --raw | audit2allow -M my-unbound
+semodule -i my-unbound.pp
+rm /etc/unbound/unbound.conf
+cat > /etc/unbound/unbound.conf << EOF
+
+
+rm /etc/iscsi/initiatorname.iscsi
+cat > /etc/iscsi/initiatorname.iscsi << EOF
+InitiatorName=iqn.2014-06.com.example:vm2
+systemctl enable iscsid
+systemctl enable iscsi
+systemctl restart iscsid
+systemctl restart iscsi
+iscsiadm -m discovery -t sendtartgets -p 10.0.0.100:3260
+iscsi
+
+
+
+
+fdisk /dev/sda << EOF
+n
+
+
+
+w
+EOF
+
+rm /etc/auto.master
+cat > /etc/auto.master << EOF
+#
+# Sample auto.master file
+# This is a 'master' automounter map and it has the following format:
+# mount-point [map-type[,format]:]map [options]
+# For details of the format look at auto.master(5).
+#
+#/misc  /etc/auto.misc
+/mnt    /etc/auto.misc
+
+# NOTE:  mounts done from a hosts map will be mounted with the
+        "nosuid" and "nodev" options unless the "suid" and "dev"
+        options are explicitly given.
+#
+/net    -hosts
+#
+# Include /etc/auto.master.d/*.autofs
+# The included files must conform to the format of this file.
+#
++dir:/etc/auto.master.d
+#
+# Include central master map if it can be found using
+# nsswitch sources.
+#
+# Note that if there are entries for /net or /misc (as
+# above) in the included master map any keys that are
+# same will not be seen as the first read key seen takes
+# precedence.
+#
++auto.master
+
+EOF
+
+
+myuuid=$(blkid | grep sda |awk -F " " '{ print $2 }')
+echo -e "iscsi\t\t-fstype=xfs\t\t$myuuid" >> /etc/auto.misc
+echo -e "nfsshare\t\t-fstype=nfs,rw\t\tvm1:/nfsshare" >> /etc/auto.misc

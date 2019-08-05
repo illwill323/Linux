@@ -1,4 +1,5 @@
-#Team
+####Team
+
 nmcli con add type team con-name team0 ifname team0 config '{"runner": {"name": "loadbalance"}}' ipv4.addresses 10.0.0.100/24 ipv4.method manual
 nmcli con add type team-slave ifname eth0 master team0
 nmcli con add type team-slave ifname eth1 master team0
@@ -12,12 +13,11 @@ teamdctl team0 state
 #nmcli con mod team0 ipv4.dns 10.13.2.5,10.13.2.7
 #nmcli con down team0
 nmcli con up team0
-
-
-
 yum -y install bind targetcli nfs-utils samba
 
-#Bind
+
+####Bind
+
 rm /etc/named.conf
 cat > /etc/named.conf << EOF
 //
@@ -195,7 +195,7 @@ cat > /etc/samba/smb.conf << EOF
 
 [smbshare]
 	path = /smbshare
-	write list = uone @faculty
+	write list = uone @uone
   
 EOF
 #wget https://raw.githubusercontent.com/illwill323/Linux/master/samba.smb.conf -O /etc/samba/smb.conf

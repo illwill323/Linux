@@ -1,3 +1,4 @@
+#Team
 nmcli con add type team con-name team0 ifname team0 config '{"runner": {"name": "loadbalance"}}' ipv4.addresses 10.0.0.100/24 ipv4.method manual
 nmcli con add type team-slave ifname eth0 master team0
 nmcli con add type team-slave ifname eth1 master team0
@@ -11,46 +12,225 @@ teamdctl team0 state
 #nmcli con mod team0 ipv4.dns 10.13.2.5,10.13.2.7
 #nmcli con down team0
 nmcli con up team0
+
+
+
 yum -y install bind targetcli nfs-utils samba
+
+#Bind
 rm /etc/named.conf
-wget https://raw.githubusercontent.com/illwill323/Linux/master/named.conf -O /etc/named.conf
-wget https://raw.githubusercontent.com/illwill323/Linux/master/contoso.com.zone -O /var/named/contoso.com.zone
-wget https://raw.githubusercontent.com/illwill323/Linux/master/0.0.10.in-addr.arpa.zone -O /var/named/0.0.10.in-addr.arpa.zone
+cat > /etc/named.conf << EOF
+//
+// named.conf
+//
+// Provided by Red Hat bind package to configure the ISC BIND named(8) DNS
+// server as a caching only nameserver (as a localhost DNS resolver only).
+//
+// See /usr/share/doc/bind*/sample/ for example named configuration files.
+//
+// See the BIND Administrator's Reference Manual (ARM) for details about the
+// configuration located in /usr/share/doc/bind-{version}/Bv9ARM.html
+
+options {
+	// listen-on port 53 { 127.0.0.1; };
+	listen-on port 53 { 127.0.0.1; 10.0.0.100; };
+	listen-on-v6 port 53 { ::1; };
+	directory 	"/var/named";
+	dump-file 	"/var/named/data/cache_dump.db";
+	statistics-file "/var/named/data/named_stats.txt";
+	memstatistics-file "/var/named/data/named_mem_stats.txt";
+	// allow-query     { localhost; };
+	allow-query     { localhost; 10.0.0.1/24; };
+	forwarders { 10.13.2.5; 10.13.2.7; }; 
+
+	/* 
+	 - If you are building an AUTHORITATIVE DNS server, do NOT enable recursion.
+	 - If you are building a RECURSIVE (caching) DNS server, you need to enable 
+	   recursion. 
+	 - If your recursive DNS server has a public IP address, you MUST enable access 
+	   control to limit queries to your legitimate users. Failing to do so will
+	   cause your server to become part of large scale DNS amplification 
+	   attacks. Implementing BCP38 within your network would greatly
+	   reduce such attack surface 
+	*/
+	recursion yes;
+
+	dnssec-enable no;
+	dnssec-validation no;
+
+	/* Path to ISC DLV key */
+	bindkeys-file "/etc/named.iscdlv.key";
+
+	managed-keys-directory "/var/named/dynamic";
+
+	pid-file "/run/named/named.pid";
+	session-keyfile "/run/named/session.key";
+};
+
+logging {
+        channel default_debug {
+                file "data/named.run";
+                severity dynamic;
+        };
+};
+
+zone "." IN {
+	type hint;
+	file "named.ca";
+};
+
+zone "contoso.com" IN {
+	type master;
+	file "contoso.com.zone";
+	allow-update { none; };
+};
+
+zone "0.0.10.in-addr.arpa" IN {
+	type master;
+	file "0.0.10.in-addr.arpa.zone";
+	allow-update { none; };
+};
+
+include "/etc/named.rfc1912.zones";
+include "/etc/named.root.key";
+
+EOF
+#wget https://raw.githubusercontent.com/illwill323/Linux/master/named.conf -O /etc/named.conf
+
+cat > /var/named/contoso.com.zone << EOF
+@		IN 	SOA	vm1.contoso.com. root.contoso.com. (
+						1	;Serial
+						1H	;Refresh
+						15M	;Retry
+						1W	;Expire
+						1D	;Minimum TTL
+)
+
+@		IN	NS	vm1.contoso.com.
+
+vm1		IN	A	10.0.0.100
+vm2		IN	A	10.0.0.101
+gateway		IN	A	10.0.0.1
+router		IN	CNAME	gateway.contoso.com.
+
+EOF
+#wget https://raw.githubusercontent.com/illwill323/Linux/master/contoso.com.zone -O /var/named/contoso.com.zone
+
+cat > /var/named/0.0.10.in-addr.arpa.zone << EOF
+@		IN 	SOA	vm1.contoso.com. root.contoso.com. (
+						1	;Serial
+						1H	;Refresh
+						15M	;Retry
+						1W	;Expire
+						1D	;Minimum TTL
+)
+
+@		IN	NS	vm1.contoso.com.
+
+100		IN	PTR	vm1.contoso.com.
+101		IN	PTR	vm2.contoso.com.
+1		IN	PTR	gateway.contoso.com.
+
+EOF
+#wget https://raw.githubusercontent.com/illwill323/Linux/master/0.0.10.in-addr.arpa.zone -O /var/named/0.0.10.in-addr.arpa.zone
+
+
+
+#NFS
+cat > /etc/exports << EOF
+/nfsshare *.contoso.com(rw,no_root_squash)
+
+EOF
+
 #vi /etc/exports
-wget https://raw.githubusercontent.com/illwill323/Linux/master/nfs.exports -O /etc/exports
-systemctl start nfs-server
+#wget https://raw.githubusercontent.com/illwill323/Linux/master/nfs.exports -O /etc/exports
 systemctl enable nfs-server
+systemctl start nfs-server
+mkdir /nfsshare
+exportfs -r
+
+
+#Samba
+#vi /etc/samba/smb.conf
+rm /etc/samba/smb.conf
+cat > /etc/samba/smb.conf << EOF
+# See smb.conf.example for a more detailed config file or
+# read the smb.conf manpage.
+# Run 'testparm' to verify the config is correct after
+# you modified it.
+
+[global]
+	workgroup = WORKGROUP
+	security = user
+
+	passdb backend = tdbsam
+
+	printing = cups
+	printcap name = cups
+	load printers = yes
+	cups options = raw
+	hosts allow = 172.16. .contoso.com
+
+[homes]
+	comment = Home Directories
+	valid users = %S, %D%w%S
+	browseable = No
+	read only = No
+	inherit acls = Yes
+
+[printers]
+	comment = All Printers
+	path = /var/tmp
+	printable = Yes
+	create mask = 0600
+	browseable = No
+
+[print$]
+	comment = Printer Drivers
+	path = /var/lib/samba/drivers
+	write list = @printadmin root
+	force group = @printadmin
+	create mask = 0664
+	directory mask = 0775
+
+[smbshare]
+	path = /smbshare
+	write list = uone @faculty
+  
+EOF
+#wget https://raw.githubusercontent.com/illwill323/Linux/master/samba.smb.conf -O /etc/samba/smb.conf
+
 mkdir /smbshare
 mkdir /nfsshare
 semanage fcontenxt -a -t samba_share_t '/smbshare(/.*)?/'
 restorecon -vvFR /smbshare
 setsebool -P samba_export_all_rw=1
-#vi /etc/samba/smb.conf
-rm /etc/samba/smb.conf
-wget https://raw.githubusercontent.com/illwill323/Linux/master/samba.smb.conf -O /etc/samba/smb.conf
-testparm
 useradd -s /sbin/nologin uone
-groupadd faculty
-useradd -G faculty utwo
 echo Pa11word | passwd --stdin uone
-echo Pa11word | passwd --stdin utwo
 smbpasswd -a uone
-smbpasswd -a utwo
-chown uone:faculty /smbshare
+chown uone:uone /smbshare
 chmod 770 /smbshare
-#cd /var/named
-#
+testparm
+
+#Start Services
 systemctl enable named
 systemctl start named
 systemctl start smb nmb
 systemctl enable smb nmb
-firewall-cmd --permanent --add-service=dns --zone=public
-firewall-cmd --permanent --add-port=3260/tcp --zone=public
-firewall-cmd --permanent --add-service=nfs
-firewall-cmd --permanent --add-service=samba 
-firewall-cmd --reload
+systemctl start nfs-server
+systemctl enable nfs-server
 systemctl enable target
 systemctl start target
+systemctl restart smb nmb
+
+#Firewall permissions
+firewall-cmd --permanent --add-service=dns --zone=public
+firewall-cmd --permanent --add-port=3260/tcp --zone=public
+firewall-cmd --permanent --add-service=nfs --zone=public
+firewall-cmd --permanent --add-service=samba --zone=public
+firewall-cmd --reload
+
+
 nmcli con mod team0 ipv4.dns 127.0.0.1
 systemctl restart named
 reboot

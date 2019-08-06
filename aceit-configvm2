@@ -1003,7 +1003,4 @@ echo -e "smbshare\t-fstype=cifs,rw,credentials=/root/smb,uid=1000,gid\t\t://vm1/
 
 ####System Restarts
 
-systemctl restart autofs
-systemctl restart unbound
-systemctl restart iscsid
-systemctl restart iscsi
+reboot

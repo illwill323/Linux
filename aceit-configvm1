@@ -16,11 +16,6 @@ nmcli con up team0
 yum -y install bind targetcli nfs-utils samba
 
 
-
-
-
-
-
 ####Bind
 
 rm /etc/named.conf
@@ -140,9 +135,6 @@ EOF
 #wget https://raw.githubusercontent.com/illwill323/Linux/master/0.0.10.in-addr.arpa.zone -O /var/named/0.0.10.in-addr.arpa.zone
 
 
-
-
-
 ####iscsi
 
 targetcli /backstores/block create block1 /dev/vdb
@@ -150,9 +142,6 @@ targetcli /iscsi create iqn.2014-06.com.example:remotedisk1
 targetcli /iscsi/iqn.2014-06.com.example:remotedisk1/tpg1/portals create 10.0.0.100 3260
 targetcli /iscsi/iqn.2014-06.com.example:remotedisk1/tpg1/acls create iqn.2014-06.com.example:vm2
 targetcli /iscsi/iqn.2014-06.com.example:remotedisk1/tpg1/luns create /backstores/block/block1
-
-
-
 
 
 
@@ -169,8 +158,6 @@ systemctl enable nfs-server
 systemctl start nfs-server
 mkdir /nfsshare
 exportfs -r
-
-
 
 
 
@@ -241,8 +228,6 @@ Pa11word
 Pa11word
 chown uone:uone /smbshare
 chmod 770 /smbshare
-testparm
-
 
 
 
@@ -259,8 +244,6 @@ systemctl start target
 systemctl restart smb nmb
 
 
-
-
 ####Firewall permissions
 
 firewall-cmd --permanent --add-service=dns --zone=public
@@ -268,8 +251,6 @@ firewall-cmd --permanent --add-port=3260/tcp --zone=public
 firewall-cmd --permanent --add-service=nfs --zone=public
 firewall-cmd --permanent --add-service=samba --zone=public
 firewall-cmd --reload
-
-
 
 
 ####Finishing config

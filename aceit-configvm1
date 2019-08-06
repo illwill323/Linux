@@ -16,6 +16,11 @@ nmcli con up team0
 yum -y install bind targetcli nfs-utils samba
 
 
+
+
+
+
+
 ####Bind
 
 rm /etc/named.conf
@@ -136,7 +141,19 @@ EOF
 
 
 
-#NFS
+####iscsi
+targetcli /backstores/block create block1 /dev/sda
+targetcli /iscsi create iqn.2014-06.com.example:remotedisk1
+targetcli /iscsi/iqn.2014-06.com.example:remotedisk1/tpg1/portals create 10.0.0.100 3260
+targetcli /iscsi/iqn.2014-06.com.example:remotedisk1/tpg1/acls create iqn.2014-06.com.example:vm2
+targetcli /iscsi/iqn.2014-06.com.example:remotedisk1/tpg1/luns create /backstores/block/block1
+
+
+
+
+####NFS
+
+
 cat > /etc/exports << EOF
 /nfsshare *.contoso.com(rw,no_root_squash)
 

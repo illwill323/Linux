@@ -9,14 +9,7 @@ echo 127.0.0.1 vm2 vm2.contoso.com >> /etc/hosts
 echo 10.0.0.100 vm1 vm1.contoso.com >> /etc/hosts
 yum -y install unbound autofs iscsi-initiator-utils samba-client cifs-utils
 
-####System Enable/Start
 
-
-
-
-####Unbound
-ausearch -c 'unbound' --raw | audit2allow -M my-unbound
-semodule -i my-unbound.pp
 
 rm /etc/unbound/unbound.conf
 cat > /etc/unbound/unbound.conf << EOF

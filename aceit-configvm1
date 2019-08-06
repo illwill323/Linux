@@ -238,15 +238,12 @@ firewall-cmd --reload
 ####Admin
 
 mkdir /smbshare
-mkdir /nfsshare
 semanage fcontenxt -a -t samba_share_t '/smbshare(/.*)?/'
 restorecon -vvFR /smbshare
 setsebool -P samba_export_all_rw=1
 useradd -s /sbin/nologin uone
 chmod 770 /smbshare
-smbpasswd -a uone
-Pa11word
-Pa11word
+smbpasswd -a uone Pa11word Pa11word
 chown uone:uone /smbshare
 
 

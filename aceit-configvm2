@@ -10,6 +10,7 @@ echo 10.0.0.100 vm1 vm1.contoso.com >> /etc/hosts
 yum -y install unbound autofs iscsi-initiator-utils samba-client cifs-utils
 
 
+####Unbound
 
 rm /etc/unbound/unbound.conf
 cat > /etc/unbound/unbound.conf << EOF
@@ -919,6 +920,9 @@ systemctl restart iscsid
 systemctl restart iscsi
 iscsiadm -m discovery -t sendtartgets -p 10.0.0.100:3260
 iscsiadm -m node -T iqn.2014-06.com.example:remotedisk1 -p 10.0.0.100:3260 -l
+systemctl enable unbound
+systemctl enable autofs
+
 
 
 fdisk /dev/sda << EOF

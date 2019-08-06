@@ -141,8 +141,11 @@ EOF
 
 
 
+
+
 ####iscsi
-targetcli /backstores/block create block1 /dev/sda
+
+targetcli /backstores/block create block1 /dev/vdb
 targetcli /iscsi create iqn.2014-06.com.example:remotedisk1
 targetcli /iscsi/iqn.2014-06.com.example:remotedisk1/tpg1/portals create 10.0.0.100 3260
 targetcli /iscsi/iqn.2014-06.com.example:remotedisk1/tpg1/acls create iqn.2014-06.com.example:vm2
@@ -151,8 +154,9 @@ targetcli /iscsi/iqn.2014-06.com.example:remotedisk1/tpg1/luns create /backstore
 
 
 
-####NFS
 
+
+####NFS
 
 cat > /etc/exports << EOF
 /nfsshare *.contoso.com(rw,no_root_squash)
@@ -167,7 +171,11 @@ mkdir /nfsshare
 exportfs -r
 
 
-#Samba
+
+
+
+####Samba
+
 #vi /etc/samba/smb.conf
 rm /etc/samba/smb.conf
 cat > /etc/samba/smb.conf << EOF
@@ -217,6 +225,10 @@ cat > /etc/samba/smb.conf << EOF
 EOF
 #wget https://raw.githubusercontent.com/illwill323/Linux/master/samba.smb.conf -O /etc/samba/smb.conf
 
+
+
+####Admin
+
 mkdir /smbshare
 mkdir /nfsshare
 semanage fcontenxt -a -t samba_share_t '/smbshare(/.*)?/'
@@ -229,7 +241,11 @@ chown uone:uone /smbshare
 chmod 770 /smbshare
 testparm
 
-#Start Services
+
+
+
+####Start Services
+
 systemctl enable named
 systemctl start named
 systemctl start smb nmb
@@ -240,13 +256,21 @@ systemctl enable target
 systemctl start target
 systemctl restart smb nmb
 
-#Firewall permissions
+
+
+
+####Firewall permissions
+
 firewall-cmd --permanent --add-service=dns --zone=public
 firewall-cmd --permanent --add-port=3260/tcp --zone=public
 firewall-cmd --permanent --add-service=nfs --zone=public
 firewall-cmd --permanent --add-service=samba --zone=public
 firewall-cmd --reload
 
+
+
+
+####Finishing config
 
 nmcli con mod team0 ipv4.dns 127.0.0.1
 systemctl restart named

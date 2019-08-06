@@ -214,23 +214,6 @@ EOF
 
 
 
-####Admin
-
-mkdir /smbshare
-mkdir /nfsshare
-semanage fcontenxt -a -t samba_share_t '/smbshare(/.*)?/'
-restorecon -vvFR /smbshare
-setsebool -P samba_export_all_rw=1
-useradd -s /sbin/nologin uone
-echo Pa11word | passwd --stdin uone
-smbpasswd -a uone
-Pa11word
-Pa11word
-chown uone:uone /smbshare
-chmod 770 /smbshare
-
-
-
 ####Start Services
 
 systemctl enable named
@@ -252,6 +235,20 @@ firewall-cmd --permanent --add-service=nfs --zone=public
 firewall-cmd --permanent --add-service=samba --zone=public
 firewall-cmd --reload
 
+####Admin
+
+mkdir /smbshare
+mkdir /nfsshare
+semanage fcontenxt -a -t samba_share_t '/smbshare(/.*)?/'
+restorecon -vvFR /smbshare
+setsebool -P samba_export_all_rw=1
+useradd -s /sbin/nologin uone
+echo Pa11word | passwd --stdin uone
+smbpasswd -a uone
+Pa11word
+Pa11word
+chown uone:uone /smbshare
+chmod 770 /smbshare
 
 ####Finishing config
 

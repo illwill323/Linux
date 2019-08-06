@@ -247,6 +247,21 @@ echo Pa11word | passwd --stdin uone
 smbpasswd -a uone
 Pa11word
 Pa11word
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 chown uone:uone /smbshare
 chmod 770 /smbshare
 

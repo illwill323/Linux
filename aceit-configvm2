@@ -20,8 +20,6 @@ systemctl start autofs
 
 ####Unbound
 
-ausearch -c 'unbound' --raw | audit2allow -M my-unbound
-semodule -i my-unbound.pp
 
 rm /etc/unbound/unbound.conf
 cat > /etc/unbound/unbound.conf << EOF

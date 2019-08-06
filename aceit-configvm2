@@ -16,13 +16,7 @@ systemctl start unbound
 systemctl enable autofs
 systemctl start autofs
 
-####Firewall
 
-firewall-cmd --add-service=dns --zone=public --permanent
-firewall-cmd --add-service=nfs --zone=public --permanent
-firewall-cmd --add-service=iscsi-target --zone=public --permanent
-firewall-cmd --add-service=samba-client --zone=public --permanent
-firewall-cmd --reload
 
 ####Unbound
 
@@ -915,6 +909,14 @@ forward-zone:
 #	local-zone: "example.com" refuse
 
 EOF
+
+####Firewall
+
+firewall-cmd --add-service=dns --zone=public --permanent
+firewall-cmd --add-service=nfs --zone=public --permanent
+firewall-cmd --add-service=iscsi-target --zone=public --permanent
+firewall-cmd --add-service=samba-client --zone=public --permanent
+firewall-cmd --reload
 
 ####Iscsi-target config
 

@@ -244,7 +244,8 @@ restorecon -vvFR /smbshare
 setsebool -P samba_export_all_rw=1
 useradd -s /sbin/nologin uone
 chmod 770 /smbshare
-
+smbpasswd -a uone
+chown uone:uone /smbshare
 
 
 ####Finishing config

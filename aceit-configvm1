@@ -273,5 +273,4 @@ firewall-cmd --reload
 ####Finishing config
 
 nmcli con mod team0 ipv4.dns 127.0.0.1
-systemctl restart named
 reboot

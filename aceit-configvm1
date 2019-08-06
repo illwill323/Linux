@@ -243,25 +243,9 @@ semanage fcontenxt -a -t samba_share_t '/smbshare(/.*)?/'
 restorecon -vvFR /smbshare
 setsebool -P samba_export_all_rw=1
 useradd -s /sbin/nologin uone
-echo Pa11word | smbpasswd --stdin uone
-smbpasswd -a uone
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-chown uone:uone /smbshare
 chmod 770 /smbshare
+
+
 
 ####Finishing config
 

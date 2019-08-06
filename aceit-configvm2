@@ -38,6 +38,7 @@ firewall-cmd --reload
 
 ausearch -c 'unbound' --raw | audit2allow -M my-unbound
 semodule -i my-unbound.pp
+
 rm /etc/unbound/unbound.conf
 cat > /etc/unbound/unbound.conf << EOF
 #
@@ -934,6 +935,7 @@ rm /etc/iscsi/initiatorname.iscsi
 cat > /etc/iscsi/initiatorname.iscsi << EOF
 InitiatorName=iqn.2014-06.com.example:vm2
 EOF
+
 systemctl enable iscsid
 systemctl enable iscsi
 systemctl restart iscsid

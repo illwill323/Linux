@@ -24,10 +24,10 @@ systemctl start autofs
 
 ####Firewall
 
-Firewall-cmd --zone=public --permanent --add-service=dns
-Firewall-cmd --zone=public --permanent --add-service=nfs
-Firewall-cmd --zone=public --permanent --add-service=iscsi-target
-Firewall-cmd --zone=public --permanent --add-service=samba-client
+Firewall-cmd --add-service=dns --zone=public --permanent
+Firewall-cmd --add-service=nfs --zone=public --permanent
+Firewall-cmd --add-service=iscsi-target --zone=public --permanent
+Firewall-cmd --add-service=samba-client --zone=public --permanent
 firewall-cmd --reload
 
 

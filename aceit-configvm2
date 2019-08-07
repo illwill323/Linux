@@ -914,16 +914,9 @@ cat > /etc/iscsi/initiatorname.iscsi << EOF
 InitiatorName=iqn.2014-06.com.example:vm2
 EOF
 
-systemctl enable iscsid
-systemctl enable iscsi
-systemctl restart iscsid
-systemctl restart iscsi
-iscsiadm -m discovery -t sendtartgets -p 10.0.0.100:3260
+iscsiadm -m discovery -t sendtargets -p 10.0.0.100:3260
 iscsiadm -m node -T iqn.2014-06.com.example:remotedisk1 -p 10.0.0.100:3260 -l
-systemctl enable unbound
-systemctl enable autofs
-systemctl start unbound
-systemctl start autofs
+
 
 
 fdisk /dev/sda << EOF
@@ -971,18 +964,20 @@ cat > /etc/auto.master << EOF
 EOF
 
 ####SMB
-cat >/root/smb << EOF
+cat > /root/smb << EOF
 username=uone
 password=Pa11word
-
 EOF
 
-####Auto.misc config
+cat > ~/smb-cred.txt << EOF
+username=uone
+password=Pa11word
+EOF
 
-myuuid=$(blkid | grep sda |awk -F " " '{ print $2 }')
-echo -e "iscsi\t\t-fstype=xfs\t\t$myuuid" >> /etc/auto.misc
-echo -e "nfsshare\t\t-fstype=nfs,rw\t\tvm1:/nfsshare" >> /etc/auto.misc
-echo -e "smbshare\t-fstype=cifs,rw,credentials=/root/smb,uid=1000,gid\t\t://vm1/smbshare" >> /etc/auto.misc
+chmod 600 /root/smb
+chmod 600 ~/smb-cred.txt
+
+
 
 ####System Restarts
 

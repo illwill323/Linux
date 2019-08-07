@@ -142,6 +142,7 @@ targetcli /iscsi create iqn.2014-06.com.example:remotedisk1
 targetcli /iscsi/iqn.2014-06.com.example:remotedisk1/tpg1/portals create 10.0.0.100 3260
 targetcli /iscsi/iqn.2014-06.com.example:remotedisk1/tpg1/acls create iqn.2014-06.com.example:vm2
 targetcli /iscsi/iqn.2014-06.com.example:remotedisk1/tpg1/luns create /backstores/block/block1
+targetcli saveconfig
 
 
 
@@ -181,7 +182,7 @@ cat > /etc/samba/smb.conf << EOF
 	printcap name = cups
 	load printers = yes
 	cups options = raw
-	hosts allow = 172.16. .contoso.com
+	hosts allow = 10.0.0. .contoso.com
 
 [homes]
 	comment = Home Directories
@@ -214,19 +215,6 @@ EOF
 
 
 
-####Start Services
-
-systemctl enable named
-systemctl start named
-systemctl start smb nmb
-systemctl enable smb nmb
-systemctl start nfs-server
-systemctl enable nfs-server
-systemctl enable target
-systemctl start target
-systemctl restart smb nmb
-
-
 ####Firewall permissions
 
 firewall-cmd --permanent --add-service=dns --zone=public
@@ -246,8 +234,16 @@ chmod 770 /smbshare
 smbpasswd -a uone Pa11word Pa11word
 chown uone:uone /smbshare
 
+####Start Services
+
+systemctl enable named
+systemctl enable smb nmb
+systemctl enable nfs-server
+systemctl enable target
+
 
 ####Finishing config
 
+nmcli con down eth0
 nmcli con mod team0 ipv4.dns 127.0.0.1
 reboot

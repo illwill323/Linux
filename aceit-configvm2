@@ -969,13 +969,9 @@ username=uone
 password=Pa11word
 EOF
 
-cat > ~/smb-cred.txt << EOF
-username=uone
-password=Pa11word
-EOF
 
 chmod 600 /root/smb
-chmod 600 ~/smb-cred.txt
+
 
 
 
